@@ -35,7 +35,7 @@ def qlt_connection():
         list_clients = []
         
         for row in cursor:
-            row['cod_qualitor'] = 'q' + str(row['cdcliente']).rjust(5, '0')
+            row['cod_qualitor'] = str(row['cdcliente']).rjust(5, '0')
             row.pop('cdcliente')
             list_clients.append(row)
         conn.close()
@@ -67,7 +67,7 @@ def zbx_get_hosts_by_name(zconn, q_code):
             "status": 0
         },
         "search": {
-            "host": f"*{q_code}"
+            "host": f"*{q_code}*"
         },
         "searchWildcardsEnabled": "true"
     })
@@ -87,11 +87,13 @@ def zbx_mu_hosts(zconn, hosts):
     return mu_hosts
 
 def main():
+    print("# INICIANDO O PROCESSO DE ATUALIZAÇÃO DOS CLIENTES MV PARA O GRUPO ON-PRE")
     list_clients = qlt_connection()
     zapi = zbx_connection()
 
     for client in list_clients:
         hosts = zbx_get_hosts_by_name(zapi, client['cod_qualitor'])
+        #print(json.dumps(hosts, indent=3))
         print(zbx_mu_hosts(zapi, hosts))
 
     zapi.logout()
