@@ -4,4 +4,4 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-CMD [ "python", "./Hello.py" ]
+CMD [ "python", "./zabbix.py" ]

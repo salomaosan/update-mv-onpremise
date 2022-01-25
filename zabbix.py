@@ -1,33 +1,29 @@
-import json
 import sys
+import os
 import pymssql
 from zabbix_api import ZabbixAPI
 
+
 # Acessos ao qualitor
-SERVER ='oci-db-qualitor.flowti.com.br'
-USER_QUALITOR ='svc_zabbix_mon'
-PASS_QUALITOR ='1QAZ0okm2021'
-DATABASE ='Qualitor_PRD'
+QUALITOR_SERVER = os.environ['QUALITOR_SERVER']
+QUALITOR_DATABASE = os.environ['QUALITOR_DATABASE']
+QUALITOR_USER = os.environ['QUALITOR_USER']
+QUALITOR_PASS = os.environ['QUALITOR_PASS']
 
-# Acessos ao ambiente de homologação ZABBIX
-URL = 'http://192.168.9.13/zabbix/api_jsonrpc.php'
-USER_ZABBIX = 'Admin'
-PASS_ZABBIX = 'zabbixhomol'
-GROUPID = "361"
-
-# Acessos ao ambiente de produção ZABBIX
-# URL = 'https://xcnj.myz.cloud/zabbix/api_jsonrpc.php'
-# USER_ZABBIX = 'zscript'
-# PASS_ZABBIX = 'UyHaDP6SLAmjsj#'
+# Acessos ao ZABBIX
+ZBX_URL = os.environ['ZBX_URL']
+ZBX_USER = os.environ['ZBX_USER']
+ZBX_PASS = os.environ['ZBX_PASS']
+ZBX_GROUPID = os.environ['ZBX_GROUPID']
 
 def qlt_connection():
     print("\tBuscando arquivo SQL.")
-    with open("clientes_mv_onpremise.sql") as file:
+    with open("./conf/clientes_mv_onpremise.sql") as file:
         strfile = file.read()
     
     print("\tConectando banco...")
     try:
-        conn = pymssql.connect(server=SERVER, user=USER_QUALITOR, password=PASS_QUALITOR, database=DATABASE)
+        conn = pymssql.connect(server=QUALITOR_SERVER, user=QUALITOR_USER, password=QUALITOR_PASS, database=QUALITOR_DATABASE)
         print("\tConectado!")
         cursor = conn.cursor(as_dict=True)
         print("\tBuscando clientes MV on-premise.")
@@ -49,8 +45,8 @@ def qlt_connection():
 def zbx_connection():
     try:
         print("\tConectando na API do Zabbix...")
-        zapiConn = ZabbixAPI(server=URL, timeout=120)
-        zapiConn.login(USER_ZABBIX,PASS_ZABBIX)
+        zapiConn = ZabbixAPI(server=ZBX_URL, timeout=120)
+        zapiConn.login(ZBX_USER,ZBX_PASS)
         print("\tConectado!")
         return zapiConn
     except ValueError:
@@ -79,7 +75,7 @@ def zbx_mu_hosts(zconn, hosts):
     mu_hosts = zconn.hostgroup.massupdate({
         "groups": [
             {
-                "groupid": GROUPID
+                "groupid": ZBX_GROUPID
             }
         ],
         "hosts": hosts
@@ -93,7 +89,6 @@ def main():
 
     for client in list_clients:
         hosts = zbx_get_hosts_by_name(zapi, client['cod_qualitor'])
-        #print(json.dumps(hosts, indent=3))
         print(zbx_mu_hosts(zapi, hosts))
 
     zapi.logout()
