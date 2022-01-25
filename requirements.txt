@@ -1,3 +1,0 @@
-pymssql==2.2.4
-pyodbc==4.0.32
-zabbix-api==0.5.4
