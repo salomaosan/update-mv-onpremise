@@ -21,12 +21,16 @@ GROUPID = "361"
 # PASS_ZABBIX = 'UyHaDP6SLAmjsj#'
 
 def qlt_connection():
+    print("\tBuscando arquivo SQL.")
     with open("clientes_mv_onpremise.sql") as file:
         strfile = file.read()
     
+    print("\tConectando banco...")
     try:
         conn = pymssql.connect(server=SERVER, user=USER_QUALITOR, password=PASS_QUALITOR, database=DATABASE)
+        print("\tConectado!")
         cursor = conn.cursor(as_dict=True)
+        print("\tBuscando clientes MV on-premise.")
         cursor.execute(strfile)
         list_clients = []
         
@@ -35,26 +39,29 @@ def qlt_connection():
             row.pop('cdcliente')
             list_clients.append(row)
         conn.close()
+        print("\tConexão encerrada com o banco.")
+        print("\tRetornando lista de clientes.")
         return list_clients
     except ValueError:
-        print("Erro na conexão com o Zabbix")
+        print("\tAlgum erro na conexão com o Qualitor")
         sys.exit()
 
 def zbx_connection():
     try:
-        print("Conectando na API do Zabbix...")
+        print("\tConectando na API do Zabbix...")
         zapiConn = ZabbixAPI(server=URL, timeout=120)
         zapiConn.login(USER_ZABBIX,PASS_ZABBIX)
+        print("\tConectado!")
         return zapiConn
     except ValueError:
-        print("Erro na conexão com o Zabbix")
+        print("\tAlgum erro na conexão com o Zabbix")
         sys.exit()
 
 
 # Listando hosts que tenham o codigo do qualitor defiinido'
 def zbx_get_hosts_by_name(zconn, q_code):
-    print(f"Procurando hosts {q_code}")
-    groups = zconn.host.get({
+    print(f"\tProcurando hosts do cliente com código: {q_code}")
+    hosts = zconn.host.get({
         "output": ["hostid"],
         "filter":{
             "status": 0
@@ -64,12 +71,12 @@ def zbx_get_hosts_by_name(zconn, q_code):
         },
         "searchWildcardsEnabled": "true"
     })
-    return groups
+    return hosts
 
 # Atualizando hosts para o grupo
 def zbx_mu_hosts(zconn, hosts):
-    print(f"Atualizando hosts")
-    mi = zconn.hostgroup.massupdate({
+    print(f"\tAtualizando hosts encontrado para o grupo MV on-premise")
+    mu_hosts = zconn.hostgroup.massupdate({
         "groups": [
             {
                 "groupid": GROUPID
@@ -77,7 +84,7 @@ def zbx_mu_hosts(zconn, hosts):
         ],
         "hosts": hosts
     })
-    return mi
+    return mu_hosts
 
 def main():
     list_clients = qlt_connection()
