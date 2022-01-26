@@ -97,12 +97,16 @@ def main():
     list_clients = qlt_connection()
     zapi = zbx_connection()
 
+    hosts = []
     for client in list_clients:
         print(f" >> Atualizando cliente: {client['nmcliente']}")
-        hosts = zbx_get_hosts_by_name(zapi, client['cod_qualitor'])
-        zbx_mu_hosts(zapi, hosts)
+        hosts.extend(zbx_get_hosts_by_name(zapi, client['cod_qualitor']))
     
-    print(json.dumps(zbx_get_hosts(zapi), indent=3))
+    zbx_mu_hosts(zapi, hosts)
+    
+    print()
+    #hosts_in_mv_onpremise = zbx_get_hosts(zapi)
+    #print(json.dumps(hosts_in_mv_onpremise, indent=3))
 
     zapi.logout()
     print("\t\nConexão com Zabbix encerrada")
