@@ -9,12 +9,12 @@ pipeline {
         ZBX_GROUPID=credentials('zbx-groupid')
     }
     stages {
-        stage('test') {
+        stage('Build') {
             steps{
                 sh ('docker build -t my-python-app .')
             }
         }
-        stage('test2') {
+        stage('Update') {
             steps{
                 sh ('docker run --rm --env QUALITOR_SERVER=$QUALITOR_SERVER \
                 --env QUALITOR_DATABASE=$QUALITOR_DATABASE \
