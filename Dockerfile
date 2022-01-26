@@ -4,4 +4,4 @@ WORKDIR /usr/src/app
 
 COPY . .
 
-CMD [ "python", "./zabbix.py" ]
+CMD [ "python", "./update_clientes.py" ]
