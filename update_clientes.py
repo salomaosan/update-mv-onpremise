@@ -1,5 +1,7 @@
 import sys
 import os
+import json
+from textwrap import indent
 import pymssql
 from zabbix_api import ZabbixAPI
 
@@ -81,6 +83,15 @@ def zbx_mu_hosts(zconn, hosts):
         "hosts": hosts
     })
 
+def zbx_get_hosts(zconn):
+    print("\tListando servidores")
+    hosts = zconn.host.get({
+        "output": ["hostid", "host"],
+        "groupids": ZBX_GROUPID
+    })
+    return hosts
+
+
 def main():
     print("# INICIANDO O PROCESSO DE ATUALIZAÇÃO DOS CLIENTES MV PARA O GRUPO ON-PREMISE #")
     list_clients = qlt_connection()
@@ -90,6 +101,8 @@ def main():
         print(f" >> Atualizando cliente: {client['nmcliente']}")
         hosts = zbx_get_hosts_by_name(zapi, client['cod_qualitor'])
         zbx_mu_hosts(zapi, hosts)
+    
+    print(json.dumps(zbx_get_hosts(zapi), indent=3))
 
     zapi.logout()
     print("\t\nConexão com Zabbix encerrada")
